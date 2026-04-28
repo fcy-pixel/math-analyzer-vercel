@@ -45,6 +45,7 @@ body {
 .form-group { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 160px; }
 .form-group.full { flex-basis: 100%; }
 .form-group label { font-weight: 600; font-size: 0.85rem; color: var(--fg2); }
+.form-group small { color: var(--fg2); font-size: 0.78rem; }
 .form-group input, .form-group select, .form-group textarea {
   padding: 8px 12px;
   border: 1px solid var(--border);
@@ -100,6 +101,66 @@ body {
   background: var(--accent);
   transition: width 0.3s;
   border-radius: 4px;
+}
+.progress-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+  margin-top: 6px;
+}
+.student-progress-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+.student-progress-row {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--card-bg);
+}
+.student-progress-row.analyzing { border-color: #90caf9; background: #eef7ff; }
+.student-progress-row.done { border-color: #a5d6a7; background: #f1f8e9; }
+.student-progress-row.error { border-color: #ef9a9a; background: #ffebee; }
+.student-progress-main,
+.student-progress-detail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.student-progress-main span,
+.student-progress-detail span:last-child {
+  color: var(--fg2);
+  font-size: 0.82rem;
+}
+.student-status {
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  background: #e0e0e0;
+  color: var(--fg2);
+}
+.student-status.rendering { background: #fff3cd; color: #8a5a00; }
+.student-status.analyzing { background: #dbeafe; color: #1d4ed8; }
+.student-status.done { background: #dcfce7; color: #15803d; }
+.student-status.error { background: #fee2e2; color: #b91c1c; }
+.mini-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.mini-progress div {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.25s;
 }
 
 .tabs {

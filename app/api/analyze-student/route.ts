@@ -12,7 +12,39 @@ function parseJson(text: string): Record<string, unknown> {
   if (m1) try { return JSON.parse(m1[1]); } catch {}
   const m2 = text.match(/(\{[\s\S]*\})/);
   if (m2) try { return JSON.parse(m2[1]); } catch {}
-  return { raw_response: text, parse_error: true };
+  // Last-resort repair for truncated output: keep complete question objects only.
+  try {
+    const start = text.indexOf("{");
+    if (start >= 0) {
+      const head = text.slice(start);
+      const arrIdx = head.indexOf("\"question_results\"");
+      if (arrIdx >= 0) {
+        const bracket = head.indexOf("[", arrIdx);
+        if (bracket >= 0) {
+          let depth = 0; let inStr = false; let esc = false; let lastGood = -1;
+          for (let i = bracket + 1; i < head.length; i++) {
+            const ch = head[i];
+            if (esc) { esc = false; continue; }
+            if (ch === "\\") { esc = true; continue; }
+            if (ch === '"') { inStr = !inStr; continue; }
+            if (inStr) continue;
+            if (ch === "{") depth++;
+            else if (ch === "}") { depth--; if (depth === 0) lastGood = i; }
+            else if (ch === "]" && depth === 0) { lastGood = i - 1; break; }
+          }
+          if (lastGood > bracket) {
+            const repaired = head.slice(0, lastGood + 1) + "]}";
+            try {
+              const obj = JSON.parse(repaired) as Record<string, unknown>;
+              (obj as Record<string, unknown>)._repaired = true;
+              return obj;
+            } catch {}
+          }
+        }
+      }
+    }
+  } catch {}
+  return { raw_response: text.slice(0, 500), parse_error: true };
 }
 
 export async function POST(req: NextRequest) {
@@ -27,41 +59,33 @@ export async function POST(req: NextRequest) {
 
     const systemMsg = `你是一位有豐富批改經驗的香港小學數學教師，熟悉香港課程發展議會《數學課程指引》（2017），擅長辨認學生的手寫答案及識別常見數學錯誤類型。
 重要評分規則（必須嚴格遵守）：
-(1) 假分數（improper fraction）必須直接給滿分。例如答案是 1 3/4，學生寫 7/4，直接給滿分，is_correct 設為 true。
-(2) 帶分數與假分數互換一律正確：7/4 = 1 3/4、13/5 = 2 3/5，只要數值相等就給滿分。
-(3) 絕對不可因為學生用假分數作答而扣分、標記錯誤或備註為非標準答案。`;
+(1) 試卷上可能有算草、直式運算、塗改痕跡或草稿區，請完全忽略，只看學生寫在「答」「Ans」「填空」或最後答案欄位的最終答案。
+(2) 帶分數（mixed number）與假分數（improper fraction）都可以作為最終答案，只要約至最簡分數即視為正確。例如：1 3/4 = 7/4、13/5 = 2 3/5，數值相等且已最簡，直接給滿分，is_correct 設為 true。
+(3) 絕對不可因為學生用假分數或帶分數作答而扣分、標記錯誤或備註為非標準答案。
+(4) 如學生在該題答案欄完全留空、沒有任何作答，必須將 student_answer 設為 ""（空字串），error_type 設為 "未作答"，error_description 寫「學生沒有作答」。
+(5) 嚴禁自行猜測或填上任何代答字（不可自行寫一個答案再扣分），留空就是「沒有作答」。`;
 
-    const outSchema = `{"student_name":"...","total_marks_awarded":數字,"total_marks_possible":數字,"percentage":數字,"performance_level":"優秀(≥85%) / 良好(70-84%) / 一般(55-69%) / 需要改善(<55%)","question_results":[{"question_ref":"題號","topic":"考核主題","strand":"課程範疇","marks_possible":分值,"marks_awarded":得分,"is_correct":true/false,"student_answer":"學生作答","correct_answer":"正確答案","error_type":"概念性誤解/程序性錯誤/粗心大意/未作答/null","error_description":"錯誤描述或null"}],"overall_remarks":"簡短評語"}`;
+    const outSchema = `{"student_name":"...","total_marks_awarded":數字,"total_marks_possible":數字,"percentage":數字,"performance_level":"優秀(≥85%) / 良好(70-84%) / 一般(55-69%) / 需要改善(<55%)","question_results":[{"question_ref":"題號","topic":"考核主題","strand":"課程範疇","question_type":"純計算題/文字應用題/填充題/選擇題/判斷題/作圖題/其他","marks_possible":分值,"marks_awarded":得分,"is_correct":true/false,"student_answer":"學生作答","correct_answer":"正確答案","error_type":"概念性誤解/程序性錯誤/粗心大意/未作答/null","error_description":"錯誤描述或null"}],"overall_remarks":"簡短評語"}`;
 
-    let prompt: string;
-    if (questionSchema && questionSchema.length > 0) {
-      prompt = `你正在批改 ${name} 的 ${grade} 年級數學試卷（共 ${nPages} 頁）。
+    if (!questionSchema || questionSchema.length === 0) {
+      return NextResponse.json({ error: "缺少答案鍵：必須先上傳答案鍵才能批改。" }, { status: 400 });
+    }
 
-本次試卷各題正確答案：
+    const prompt = `批改 ${name}（${grade}，共 ${nPages} 頁）。
+
+答案鍵：
 ${JSON.stringify(questionSchema, null, 2)}
 
-請仔細閱讀每頁學生作答，逐題：
-1. 辨認學生答案（手寫可能字跡潦草，請盡力判讀）
-2. 根據答案鍵評正
-3. 如答錯，填寫error_type和error_description
-4. 答案鍵內每題必須評分，找不到視為「未作答」
-5. **假分數必須直接給滿分**
+規則：
+1. 只看學生寫在答案欄的最終答案，忽略算草、直式運算、塗改。
+2. 與答案鍵比對給分；答對 is_correct=true 滿分；答錯填 error_type 和 error_description。
+3. 帶分數與假分數只要約至最簡且數值相等即視為正確。
+4. 答案欄留空：student_answer="", error_type="未作答", error_description="學生沒有作答"，絕不自行作答。
+5. 答案鍵每題都必須出現於 question_results；question_type 從題目文字判斷（純計算題 / 文字應用題 / 填充題 / 選擇題 等）。
+6. topic 與 strand 直接沿用答案鍵內容。
 
-只輸出純JSON（不加markdown代碼塊）：
+只輸出純JSON：
 ${outSchema}`;
-    } else {
-      prompt = `你正在批改 ${name} 的 ${grade} 年級數學試卷（共 ${nPages} 頁）。
-
-沒有答案鍵，請：
-1. 識別所有題目（包括子題(a)(b)(c)等）
-2. 根據數學知識判斷學生的作答是否正確
-3. 標注課程範疇（數與代數 / 度量 / 圖形與空間 / 數據處理）
-4. 描述錯誤（如有），每題分值若題目未標示則估算1分
-5. **假分數必須直接給滿分**
-
-只輸出純JSON（不加markdown代碼塊）：
-${outSchema}`;
-    }
 
     // Single batch fast path
     if (images.length <= BATCH_SIZE) {
@@ -86,15 +110,11 @@ ${outSchema}`;
       return NextResponse.json(result);
     }
 
-    // Multi-batch
+    // Multi-batch (parallel)
     const batches: string[][] = [];
     for (let i = 0; i < images.length; i += BATCH_SIZE) batches.push(images.slice(i, i + BATCH_SIZE));
 
-    const allQResults: Record<string, unknown>[] = [];
-    let totalAwarded = 0, totalPossible = 0;
-
-    for (let i = 0; i < batches.length; i++) {
-      const batch = batches[i];
+    const batchResults = await Promise.all(batches.map(async (batch, i) => {
       const startP = i * BATCH_SIZE + 1;
       const endP = Math.min(startP + batch.length - 1, nPages);
       const batchPrompt = prompt + `\n\n【你正在分析第 ${startP}–${endP} 頁，共 ${nPages} 頁，本批次只包含此頁範圍內的題目，請勿遺漏任何一題】`;
@@ -115,7 +135,12 @@ ${outSchema}`;
         temperature: 0.2,
         max_tokens: 4096,
       });
-      const parsed = parseJson(resp.choices[0].message.content || "{}") as Record<string, unknown>;
+      return parseJson(resp.choices[0].message.content || "{}") as Record<string, unknown>;
+    }));
+
+    const allQResults: Record<string, unknown>[] = [];
+    let totalAwarded = 0, totalPossible = 0;
+    for (const parsed of batchResults) {
       if (!parsed.parse_error) {
         const qr = (parsed.question_results as Record<string, unknown>[]) || [];
         allQResults.push(...qr);
