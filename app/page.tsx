@@ -44,8 +44,8 @@ const STUDENT_STATUS_LABELS: Record<StudentProgressStatus, string> = {
 async function loadPdfjs() {
   if (pdfjsLib) return pdfjsLib;
   const lib = await import("pdfjs-dist");
-  // Use local worker; _headers file sets correct Content-Type for Cloudflare Pages
-  lib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+  // Use CDN worker to avoid Cloudflare Pages Content-Type issues with .mjs files
+  lib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${lib.version}/build/pdf.worker.min.mjs`;
   pdfjsLib = lib;
   return lib;
 }
