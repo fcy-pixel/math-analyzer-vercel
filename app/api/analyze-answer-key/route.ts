@@ -35,8 +35,9 @@ export async function POST(req: NextRequest) {
 
     const allQuestions: Record<string, unknown>[] = [];
     const rawResponses: string[] = [];
-    for (let i = 0; i < batches.length; i++) {
-      const batch = batches[i];
+
+    // Process all batches in parallel for speed
+    const batchResults = await Promise.all(batches.map(async (batch, i) => {
       const startP = i * BATCH_SIZE + 1;
       const endP = Math.min(startP + batch.length - 1, totalPages);
       const prompt = `請仔細閱讀這批試卷答案版頁面（第 ${startP}–${endP} 頁，共 ${totalPages} 頁的一部分）。
@@ -79,7 +80,6 @@ export async function POST(req: NextRequest) {
         max_tokens: 4096,
       });
       const rawText = resp.choices[0].message.content || "";
-      rawResponses.push(rawText.slice(0, 500));
       const parsed = parseJson(rawText);
       // Handle both { questions_found: [...] } and direct array formats
       let qs: Record<string, unknown>[] = [];
@@ -88,13 +88,17 @@ export async function POST(req: NextRequest) {
       } else if (Array.isArray(parsed)) {
         qs = parsed as Record<string, unknown>[];
       } else if ((parsed as { parse_error?: boolean }).parse_error) {
-        // Try to extract array from raw text directly
         const arrMatch = rawText.match(/\[\s*\{[\s\S]*\}\s*\]/);
         if (arrMatch) {
           try { qs = JSON.parse(arrMatch[0]); } catch {}
         }
       }
-      allQuestions.push(...qs);
+      return { qs, rawText: rawText.slice(0, 500) };
+    }));
+
+    for (const r of batchResults) {
+      allQuestions.push(...r.qs);
+      rawResponses.push(r.rawText);
     }
 
     // Simplify for schema

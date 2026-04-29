@@ -12,7 +12,7 @@ import { downloadPracticeDocx } from "@/lib/practice-docx";
 
 /* ───────────── PDF → base64 images (client-side, pdfjs-dist) ───────────── */
 let pdfjsLib: typeof import("pdfjs-dist") | null = null;
-const PDF_RENDER_CONCURRENCY = 2;
+const PDF_RENDER_CONCURRENCY = 4;
 
 type RenderMode = "fast" | "balanced" | "accurate";
 type StudentProgressStatus = "waiting" | "rendering" | "analyzing" | "done" | "error";
@@ -1174,7 +1174,7 @@ export default function MathAnalyzer() {
       const baseProgress = answerKeyFile ? 15 : 5;
       const progressPerStudent = (85 - baseProgress) / Math.max(chunks.length, 1);
       const errors: string[] = [];
-      const STUDENT_CONCURRENCY = 4;
+      const STUDENT_CONCURRENCY = 8;
       let doneCount = 0;
 
       const processChunk = async (chunk: typeof chunks[number]) => {
