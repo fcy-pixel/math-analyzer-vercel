@@ -45,7 +45,8 @@ async function loadPdfjs() {
   if (pdfjsLib) return pdfjsLib;
   const lib = await import("pdfjs-dist");
   // Use CDN worker to avoid Cloudflare Pages Content-Type issues with .mjs files
-  lib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${lib.version}/build/pdf.worker.min.mjs`;
+  const version = lib.version;
+  lib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${version}/build/pdf.worker.min.mjs`;
   pdfjsLib = lib;
   return lib;
 }
