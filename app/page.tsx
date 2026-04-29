@@ -44,9 +44,8 @@ const STUDENT_STATUS_LABELS: Record<StudentProgressStatus, string> = {
 async function loadPdfjs() {
   if (pdfjsLib) return pdfjsLib;
   const lib = await import("pdfjs-dist");
-  // Run on main thread to avoid Cloudflare Pages .mjs Content-Type issues entirely.
-  // Slower but 100% reliable. Worker source still set as fallback.
-  lib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${lib.version}/build/pdf.worker.min.mjs`;
+  // pdfjs-dist v3 uses .js worker file (Cloudflare Pages serves .js correctly)
+  lib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
   pdfjsLib = lib;
   return lib;
 }
@@ -90,8 +89,7 @@ async function loadPdfDocument(file: File, onProgress?: (message: string, percen
     onProgress?.(`讀取檔案 ${formatBytes(loaded)} / ${formatBytes(total || file.size)}`, percent);
   });
   onProgress?.("解析 PDF 頁數中", 99);
-  // disableWorker runs PDF.js on main thread - bypasses Cloudflare Pages .mjs Content-Type issue.
-  const loadingTask = lib.getDocument({ data: new Uint8Array(buf), disableWorker: true } as Parameters<typeof lib.getDocument>[0]);
+  const loadingTask = lib.getDocument({ data: new Uint8Array(buf) });
   loadingTask.onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
     if (total) onProgress?.(`解析 PDF ${Math.round((loaded / total) * 100)}%`, Math.min(99, Math.round((loaded / total) * 100)));
   };
