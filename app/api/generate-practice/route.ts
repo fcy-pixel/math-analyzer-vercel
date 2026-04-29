@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getGradeCurriculum } from "@/lib/curriculum";
 
+export const runtime = "edge";
+
 const BASE_URL = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1";
 const TEXT_MODEL = "qwen-max";
 

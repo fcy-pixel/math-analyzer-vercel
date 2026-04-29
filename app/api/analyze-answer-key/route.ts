@@ -1,6 +1,8 @@
 /* Analyze answer key images with Qwen Vision API */
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+
+export const runtime = "edge";
 import { getGradeCurriculum } from "@/lib/curriculum";
 
 const BASE_URL = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1";

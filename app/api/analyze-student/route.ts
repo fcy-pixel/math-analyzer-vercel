@@ -2,6 +2,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
+export const runtime = "edge";
+
 const BASE_URL = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1";
 const VISION_MODEL = "qwen-vl-max";
 const BATCH_SIZE = 6;
