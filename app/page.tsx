@@ -67,8 +67,8 @@ function getPdfErrorMessage(error: unknown) {
   if (/PDF_PARSE_TIMEOUT/i.test(message)) return "PDF 解析超時，請先壓縮或重新匯出 PDF，再重新上載。";
   if (/password|encrypted/i.test(message)) return "PDF 已加密或需要密碼，請先解除密碼後再上載。";
   if (/invalid|corrupt|damaged|bad XRef|Missing PDF/i.test(message)) return "PDF 檔案可能已損壞，請重新匯出 PDF 後再試。";
-  if (/worker|fetch|network|404/i.test(message)) return "PDF 解析器載入失敗，請重新整理頁面後再試。";
-  return message || "PDF 解析失敗，請重新匯出 PDF 後再試。";
+  // Show the real error to help diagnose
+  return `PDF 解析失敗：${message || "未知錯誤"}`;
 }
 
 function readFileAsArrayBuffer(file: File, onProgress?: (loaded: number, total: number) => void): Promise<ArrayBuffer> {
