@@ -1147,7 +1147,8 @@ export default function MathAnalyzer() {
           questionSchema = keyData.question_schema;
           setStatusMsg(`✅ 已從答案鍵識別 ${questionSchema.length} 題`);
         } else {
-          throw new Error("答案鍵分析完成，但未能識別出任何題目。請確認上傳的是答案版，或嘗試提高圖片清晰度。");
+          const debugInfo = keyData.debug_raw ? `\n\nAI 回應（除錯）：${keyData.debug_raw.join(" | ")}` : "";
+          throw new Error(`答案鍵分析完成，但未能識別出任何題目。AI 可能無法讀取圖片，請嘗試：\n1. 確認上傳的是答案版（有正確答案的那份）\n2. 切換到「精確」渲染模式後重試\n3. 若上傳的是圖片檔，請確保清晰度足夠${debugInfo}`);
         }
         setProgress(15);
       }

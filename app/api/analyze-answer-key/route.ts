@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
     const totalPages = images.length;
 
     const allQuestions: Record<string, unknown>[] = [];
+    const rawResponses: string[] = [];
     for (let i = 0; i < batches.length; i++) {
       const batch = batches[i];
       const startP = i * BATCH_SIZE + 1;
@@ -77,8 +78,22 @@ export async function POST(req: NextRequest) {
         temperature: 0.2,
         max_tokens: 4096,
       });
-      const parsed = parseJson(resp.choices[0].message.content || "{}");
-      const qs = (parsed as { questions_found?: Record<string, unknown>[] }).questions_found || [];
+      const rawText = resp.choices[0].message.content || "";
+      rawResponses.push(rawText.slice(0, 500));
+      const parsed = parseJson(rawText);
+      // Handle both { questions_found: [...] } and direct array formats
+      let qs: Record<string, unknown>[] = [];
+      if (Array.isArray((parsed as { questions_found?: unknown }).questions_found)) {
+        qs = (parsed as { questions_found: Record<string, unknown>[] }).questions_found;
+      } else if (Array.isArray(parsed)) {
+        qs = parsed as Record<string, unknown>[];
+      } else if ((parsed as { parse_error?: boolean }).parse_error) {
+        // Try to extract array from raw text directly
+        const arrMatch = rawText.match(/\[\s*\{[\s\S]*\}\s*\]/);
+        if (arrMatch) {
+          try { qs = JSON.parse(arrMatch[0]); } catch {}
+        }
+      }
       allQuestions.push(...qs);
     }
 
@@ -92,7 +107,11 @@ export async function POST(req: NextRequest) {
       solution_method: q.solution_method || "",
     }));
 
-    return NextResponse.json({ question_schema: schema, total_questions: schema.length });
+    return NextResponse.json({
+      question_schema: schema,
+      total_questions: schema.length,
+      ...(schema.length === 0 && { debug_raw: rawResponses }),
+    });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     return NextResponse.json({ error: msg }, { status: 500 });
