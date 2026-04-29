@@ -1140,9 +1140,14 @@ export default function MathAnalyzer() {
           body: JSON.stringify({ images: keyImages, grade }),
         });
         const keyData = await keyResp.json();
-        if (keyData.question_schema) {
+        if (!keyResp.ok || keyData.error) {
+          throw new Error(`答案鍵分析失敗：${keyData.error || `HTTP ${keyResp.status}`}`);
+        }
+        if (keyData.question_schema && keyData.question_schema.length > 0) {
           questionSchema = keyData.question_schema;
           setStatusMsg(`✅ 已從答案鍵識別 ${questionSchema.length} 題`);
+        } else {
+          throw new Error("答案鍵分析完成，但未能識別出任何題目。請確認上傳的是答案版，或嘗試提高圖片清晰度。");
         }
         setProgress(15);
       }
