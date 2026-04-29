@@ -44,9 +44,17 @@ const STUDENT_STATUS_LABELS: Record<StudentProgressStatus, string> = {
 async function loadPdfjs() {
   if (pdfjsLib) return pdfjsLib;
   const lib = await import("pdfjs-dist");
-  // Use CDN worker to avoid Cloudflare Pages Content-Type issues with .mjs files
-  const version = lib.version;
-  lib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${version}/build/pdf.worker.min.mjs`;
+  // Fetch local worker file and re-wrap as a blob: URL with correct MIME type.
+  // This bypasses Cloudflare Pages serving .mjs as text/plain.
+  try {
+    const resp = await fetch("/pdf.worker.min.mjs");
+    const code = await resp.text();
+    const blob = new Blob([code], { type: "application/javascript" });
+    lib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(blob);
+  } catch {
+    // Fallback to CDN if local fetch fails
+    lib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${lib.version}/build/pdf.worker.min.mjs`;
+  }
   pdfjsLib = lib;
   return lib;
 }
