@@ -5,7 +5,7 @@ import OpenAI from "openai";
 export const runtime = "edge";
 
 const BASE_URL = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1";
-const VISION_MODEL = "qwen-vl-max";
+const VISION_MODEL = "qwen3.6-plus";
 const BATCH_SIZE = 6;
 
 function parseJson(text: string): Record<string, unknown> {
