@@ -1407,7 +1407,7 @@ export default function MathAnalyzer() {
         <div>
           <h1>📊 中華基督教會基慈小學 · 數學學生表現分析系統</h1>
           <p>上傳全班學生試卷 PDF · AI 逐份批改 · 自動生成全班弱點診斷報告 · 基於香港小學數學課程綱要</p>
-          <p style={{ fontSize: "0.78rem", marginTop: 4, opacity: 0.75 }}>🤖 AI 模型：<strong>qwen3.6-plus</strong>（阿里雲 Qwen 最新旗艦視覺模型）</p>
+          <p style={{ fontSize: "0.78rem", marginTop: 4, opacity: 0.75 }}>🤖 AI 模型：<strong>qwen2.5-vl-72b-instruct</strong>（阿里雲 Qwen 2.5 VL 72B 視覺模型）</p>
         </div>
       </div>
 
