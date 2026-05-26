@@ -6,8 +6,8 @@ export const runtime = "edge";
 import { getGradeCurriculum } from "@/lib/curriculum";
 
 const BASE_URL = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1";
-const VISION_MODEL = "qwen3.6-plus";
-const BATCH_SIZE = 6;
+const VISION_MODEL = "qwen2.5-vl-72b-instruct";
+const BATCH_SIZE = 2;
 
 function parseJson(text: string): Record<string, unknown> {
   try { return JSON.parse(text); } catch {}
