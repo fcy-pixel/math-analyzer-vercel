@@ -1,24 +1,19 @@
 /* Analyze answer key images with Qwen Vision API */
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { parseJson, sanitizeJson, extractCompleteObjects } from "@/lib/json-parse";
+import { requireAuth } from "@/lib/auth";
 
 export const runtime = "edge";
 import { getGradeCurriculum } from "@/lib/curriculum";
 
 const BASE_URL = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1";
-const VISION_MODEL = "qwen2.5-vl-72b-instruct";
-const BATCH_SIZE = 2;
-
-function parseJson(text: string): Record<string, unknown> {
-  try { return JSON.parse(text); } catch {}
-  const m1 = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-  if (m1) try { return JSON.parse(m1[1]); } catch {}
-  const m2 = text.match(/(\{[\s\S]*\})/);
-  if (m2) try { return JSON.parse(m2[1]); } catch {}
-  return { raw_response: text, parse_error: true };
-}
+const VISION_MODEL = "qwen3-vl-30b-a3b-thinking";
+const BATCH_SIZE = 1;
 
 export async function POST(req: NextRequest) {
+  const denied = await requireAuth(req);
+  if (denied) return denied;
   try {
     const { images, grade, apiKey } = await req.json();
     const key = apiKey || process.env.QWEN_API_KEY;
@@ -43,11 +38,13 @@ export async function POST(req: NextRequest) {
       const prompt = `請仔細閱讀這批試卷答案版頁面（第 ${startP}–${endP} 頁，共 ${totalPages} 頁的一部分）。
 
 注意：這是試卷的**答案版（參考答案卷）**，不是學生作答卷。
-請對這幾頁上的**每一道題目**進行分析，包括：
-- 題目編號、題目內容的完整描述
-- 題目考核的數學概念、課程範疇
-- 正確答案或正確解題方法
-- 題目分值（如標示）、難度評估
+請對這頁上的**每一道題目**進行分析，包括：
+- 題目編號
+- 考核主題、課程範疇
+- 正確答案或最終答案
+- 分值（如標示）
+
+重要：保持輸出精簡，correct_answer 最多 80 字，solution_method 最多 120 字。不要寫長篇推導，不要使用 markdown 代碼塊。所有文字用純文字，分數寫成「3/4」格式，嚴禁使用 LaTeX 或任何反斜線（\\）符號，以免破壞 JSON。
 
 以**純 JSON** 格式回應：
 {
@@ -77,10 +74,10 @@ export async function POST(req: NextRequest) {
           { role: "user" as const, content: content as unknown as string },
         ],
         temperature: 0.2,
-        max_tokens: 4096,
+        max_tokens: 8192,
       });
       const rawText = resp.choices[0].message.content || "";
-      const parsed = parseJson(rawText);
+      const parsed = parseJson(rawText, 2000);
       // Handle both { questions_found: [...] } and direct array formats
       let qs: Record<string, unknown>[] = [];
       if (Array.isArray((parsed as { questions_found?: unknown }).questions_found)) {
@@ -90,10 +87,12 @@ export async function POST(req: NextRequest) {
       } else if ((parsed as { parse_error?: boolean }).parse_error) {
         const arrMatch = rawText.match(/\[\s*\{[\s\S]*\}\s*\]/);
         if (arrMatch) {
-          try { qs = JSON.parse(arrMatch[0]); } catch {}
+          try { qs = JSON.parse(arrMatch[0]); }
+          catch { try { qs = JSON.parse(sanitizeJson(arrMatch[0])); } catch {} }
         }
+        if (qs.length === 0) qs = extractCompleteObjects(rawText, "questions_found");
       }
-      return { qs, rawText: rawText.slice(0, 500) };
+      return { qs, rawText: rawText.slice(0, 2000) };
     }));
 
     for (const r of batchResults) {

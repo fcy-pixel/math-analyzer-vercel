@@ -2,22 +2,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getGradeCurriculum } from "@/lib/curriculum";
+import { parseJson } from "@/lib/json-parse";
+import { requireAuth } from "@/lib/auth";
 
 export const runtime = "edge";
 
 const BASE_URL = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1";
 const TEXT_MODEL = "qwen-max";
 
-function parseJson(text: string): Record<string, unknown> {
-  try { return JSON.parse(text); } catch {}
-  const m1 = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-  if (m1) try { return JSON.parse(m1[1]); } catch {}
-  const m2 = text.match(/(\{[\s\S]*\})/);
-  if (m2) try { return JSON.parse(m2[1]); } catch {}
-  return { raw_response: text, parse_error: true };
-}
-
 export async function POST(req: NextRequest) {
+  const denied = await requireAuth(req);
+  if (denied) return denied;
   try {
     const { aggregated, grade, apiKey } = await req.json();
     const key = apiKey || process.env.QWEN_API_KEY;

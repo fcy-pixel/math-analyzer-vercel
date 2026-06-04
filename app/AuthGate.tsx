@@ -107,9 +107,25 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
       hd,
       exp: Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000,
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(info));
-    setAuth(info);
-    setError(null);
+    // Exchange the Google token for a server session cookie so the API routes
+    // can verify the caller. The cookie is set HttpOnly by the server; we only
+    // gate the UI once the server confirms (or auth enforcement is off).
+    fetch("/api/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ credential: resp.credential }),
+    })
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          setError(data.error || "伺服器登入驗證失敗，請再試一次");
+          return;
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(info));
+        setAuth(info);
+        setError(null);
+      })
+      .catch(() => setError("無法連接伺服器進行登入驗證，請檢查網絡後再試"));
   }, []);
 
   // 4) GIS 初始化按鈕
@@ -149,6 +165,8 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(STORAGE_KEY);
     setAuth(null);
     setError(null);
+    // Clear the server session cookie too.
+    fetch("/api/auth", { method: "DELETE" }).catch(() => {});
     try {
       window.google?.accounts?.id?.disableAutoSelect();
     } catch {}
