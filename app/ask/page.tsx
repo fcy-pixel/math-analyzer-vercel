@@ -185,7 +185,13 @@ export default function AskPage() {
                 <iframe
                   title="互動圖解"
                   sandbox="allow-scripts"
-                  srcDoc={`<!DOCTYPE html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><style>html,body{margin:0;padding:8px;font-family:'PingFang TC','Microsoft JhengHei',sans-serif;background:#fff;color:#2B3445}</style></head><body>${result.interactive_html}</body></html>`}
+                  srcDoc={`<!DOCTYPE html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>` +
+                    `<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css'>` +
+                    `<style>html,body{margin:0;padding:8px;font-family:'PingFang TC','Microsoft JhengHei',sans-serif;background:#fff;color:#2B3445}</style></head><body>` +
+                    `${result.interactive_html}` +
+                    `<script defer src='https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js'></script>` +
+                    `<script defer src='https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js' onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false})"></script>` +
+                    `</body></html>`}
                   style={{ width: "100%", height: 460, border: "1px solid var(--border)", borderRadius: 12, background: "#fff" }}
                 />
               </>

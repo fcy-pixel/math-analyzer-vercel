@@ -45,6 +45,9 @@ export async function POST(req: NextRequest) {
    - 設計：適合喺約 480×440 嘅框內顯示、響應式、白底、字夠大、圓角、柔和鮮明配色（藍 #4C6FFF、橙 #FF8A3D、綠 #2FB36B、紅 #FF5C5C），繁體中文。
    - 加即時鼓勵回饋（例如「啱晒！👍」「差少少，再試」）。
    - 所有數字運算必須正確，同你上面嘅解說一致。
+   - **嚴禁喺 interactive_html 入面用 LaTeX 或 $ 符號**（呢個 widget 冇 KaTeX，$\\frac{3}{5}$ 會原樣顯示，小學生睇唔明）。分數要用 HTML/CSS 砌成小學生睇得明嘅「直式分數」（分子喺上、中間一條橫線、分母喺下）。可以用呢段 CSS：
+     <style>.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.05;margin:0 3px;font-size:1em}.frac .n{border-bottom:2px solid currentColor;padding:0 5px}.frac .d{padding:0 5px}</style>
+     用法：3/5 寫成 <span class='frac'><span class='n'>3</span><span class='d'>5</span></span>；帶分數 1 又 3/5 寫成 1<span class='frac'><span class='n'>3</span><span class='d'>5</span></span>。乘用 ×、除用 ÷，唔好用 \\times、\\frac、^、_ 等 LaTeX 指令。
    - **重要（確保 JSON 合法）**：interactive_html 字串內部嘅 HTML 屬性一律用單引號（例如 <div class='box'>），避免雙引號令 JSON 出錯。
    - 如果呢題真係唔適合做互動，interactive_html 回 ""。
 6. 最後出一條同類型、數字唔同嘅練習題畀學生自己試。
