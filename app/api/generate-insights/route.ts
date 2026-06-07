@@ -86,7 +86,9 @@ ${curriculum}
       max_tokens: 8192,
     });
 
-    return NextResponse.json(parseJson(resp.choices[0].message.content || "{}"));
+    const result = parseJson(resp.choices[0].message.content || "{}");
+    result._model = TEXT_MODEL;
+    return NextResponse.json(result);
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     return NextResponse.json({ error: msg, parse_error: true }, { status: 500 });

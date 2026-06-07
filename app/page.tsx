@@ -16,6 +16,7 @@ import {
 } from "@/app/components/tabs";
 
 const DEFAULT_VISION_MODEL = "qwen-vl-plus";
+const DEFAULT_TEXT_MODEL = "qwen-max";
 
 
 export default function MathAnalyzer() {
@@ -42,8 +43,9 @@ export default function MathAnalyzer() {
   // Results
   const [agg, setAgg] = useState<ClassAggregated | null>(null);
   const [insights, setInsights] = useState<ClassInsights | null>(null);
-  // Actual model name reported by the API (kept in sync automatically).
+  // Actual model names reported by the API (kept in sync automatically).
   const [modelName, setModelName] = useState(DEFAULT_VISION_MODEL);
+  const [textModelName, setTextModelName] = useState(DEFAULT_TEXT_MODEL);
 
   // Tab
   const [activeTab, setActiveTab] = useState(0);
@@ -311,6 +313,7 @@ export default function MathAnalyzer() {
           body: JSON.stringify({ aggregated, grade }),
         });
         const insData = await insResp.json();
+        if (insData && typeof insData._model === "string") setTextModelName(insData._model);
         setInsights(insData as ClassInsights);
       } catch {}
 
@@ -412,7 +415,7 @@ export default function MathAnalyzer() {
         <div>
           <h1>📊 中華基督教會基慈小學 · 數學學生表現分析系統</h1>
           <p>上傳全班學生試卷 PDF · AI 逐份批改 · 自動生成全班弱點診斷報告 · 基於香港小學數學課程綱要</p>
-          <p style={{ fontSize: "0.78rem", marginTop: 4, opacity: 0.75 }}>🤖 AI 模型：<strong>{modelName}</strong>（阿里雲 Qwen 視覺模型）</p>
+          <p style={{ fontSize: "0.78rem", marginTop: 4, opacity: 0.75 }}>🤖 AI 模型（阿里雲 Qwen）：視覺批改 <strong>{modelName}</strong> · 文字分析 <strong>{textModelName}</strong></p>
         </div>
       </div>
 
