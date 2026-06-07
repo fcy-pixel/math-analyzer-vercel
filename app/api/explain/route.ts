@@ -39,23 +39,16 @@ export async function POST(req: NextRequest) {
 2. 一步一步教，每步解釋「點解咁做」，唔好跳步。
 3. 計算必須正確：你要先在心中驗算清楚先答，數字絕對不能錯。
 4. 所有數學符號、算式、數字運算（喺 question_summary、steps、answer、practice 任何文字裡面）一律用 KaTeX 並用 $ 符號包住：行內用 $...$，獨立一行用 $$...$$。例如「總共 $15 \\times 31 = 465$ 小時」、分數 $\\frac{3}{4}$、除號 $\\div$、上標 $x^{2}$。唔好淨係寫 15×31 而唔用 $，亦唔好用 LaTeX 以外嘅特殊符號。
-5. 製作一個「**圖像化互動解題練習**」(interactive_html)，帶學生**用圖像操作一步一步做呢條題目嘅計算**（係引導佢完成計算，唔係亂改題目數字）。要求：
-   - 一個**完整、自足**嘅 HTML 片段：inline <style> + <script>，純 vanilla JavaScript，**唔好用任何外部資源**（CDN、外部圖片、外部字型、框架都唔好）。可以用 SVG 或 HTML 元素畫圖。
-   - **互動一定要圖像化**，唔好淨係打字。學生要透過**拖拉、點擊填色、拖放、滑動**去操作圖形完成計算，例如：
-     • 分數加減：點/拖填色等分長條或圓餅砌出每個分數，通分時將格仔再細分，再合併睇結果；
-     • 整數加減/進位：拖算珠或十格方塊分組、湊十；
-     • 乘法：喺方格陣列圈出「行 × 列」；
-     • 除法/分組：將物件拖入幾個籃／組；
-     • 數線：拖標記喺數線上跳格做加減；
-     • 周界/面積：點數方格、標示邊長。
-   - **逐步引導 + 即時檢查**：每一步顯示「呢步要做乜」，學生操作圖形後即時判斷——啱：綠色 ✓ + 鼓勵 + 解鎖下一步；錯：紅色提示，畀佢再試（可加「睇提示 💡」掣）。每步正確與否要由 JS 根據學生嘅圖像操作即時計算（正確值你預先算好寫入 JS）。全部做完顯示恭喜（🎉 全部答啱！）。
-   - 設計：適合喺約 480×470 框內、響應式、白底、字夠大、圖形夠大易撳、圓角、柔和鮮明配色（藍 #4C6FFF、橙 #FF8A3D、綠 #2FB36B、紅 #FF5C5C），繁體中文，有 emoji 鼓勵。
-   - 所有數字運算必須正確，同你上面嘅解說一致。
-   - **嚴禁喺 interactive_html 入面用 LaTeX 或 $ 符號**（呢個 widget 冇 KaTeX，$\\frac{3}{5}$ 會原樣顯示，小學生睇唔明）。分數要用 HTML/CSS 砌成小學生睇得明嘅「直式分數」（分子喺上、中間一條橫線、分母喺下）。可以用呢段 CSS：
-     <style>.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.05;margin:0 3px;font-size:1em}.frac .n{border-bottom:2px solid currentColor;padding:0 5px}.frac .d{padding:0 5px}</style>
-     用法：3/5 寫成 <span class='frac'><span class='n'>3</span><span class='d'>5</span></span>；帶分數 1 又 3/5 寫成 1<span class='frac'><span class='n'>3</span><span class='d'>5</span></span>。乘用 ×、除用 ÷，唔好用 \\times、\\frac、^、_ 等 LaTeX 指令。
-   - **重要（確保 JSON 合法）**：interactive_html 字串內部嘅 HTML 屬性一律用單引號（例如 <div class='box'>），避免雙引號令 JSON 出錯。
-   - 如果呢題真係唔適合做互動，interactive_html 回 ""。
+5. 畫一幅**精美、清晰**嘅 SVG 圖解幫助理解。請跟足以下美術規範：
+   - viewBox="0 0 480 340"，四周留足夠白邊（約 24px），元素之間要有間距，唔好逼到邊或重疊。
+   - 配色用柔和鮮明、對比清晰嘅色系：藍 #4C6FFF、橙 #FF8A3D、綠 #2FB36B、紅 #FF5C5C、黃 #FFC83D、淺灰 #EEF1F7、深字 #2B3445。可加一個淺色圓角背景 <rect rx='16' fill='#F7F9FC'/>。
+   - 形狀一律用圓角（rect 加 rx）；線條 stroke-width 2–3、stroke-linecap='round'。
+   - 文字用 font-family='PingFang TC, Microsoft JhengHei, sans-serif'、字夠大（標題 ≥18、標籤 ≥15）、text-anchor='middle' 置中、顏色 #2B3445。
+   - 一定要有**標題或圖例**說明幅圖表達緊乜。
+   - 按題型畫：分數用等分長條/圓餅並填色標示已佔部分；加減用方塊/算珠分組；長度/數線畫刻度同箭咀並標數值；幾何題畫圖形並標清楚邊長、單位。
+   - 圖入面所有數字、分數、標籤必須同你上面嘅解說完全一致；分數直接用「3/5」呢類純文字寫，唔好用 LaTeX。
+   - 只用純 SVG 元素（rect/circle/ellipse/line/path/polygon/text/g），唔好用外部圖片、外部字型或 <script>。
+   - 如果呢題真係冇適合嘅圖解，diagram_svg 回 ""。
 6. 最後出一條同類型、數字唔同嘅練習題畀學生自己試。
 
 只輸出純 JSON（唔好加 markdown 代碼塊）：
@@ -66,7 +59,7 @@ export async function POST(req: NextRequest) {
     { "explain": "淺白文字解釋", "math": "KaTeX 算式（可選，冇就留空字串）" }
   ],
   "answer": "最終答案（可含 KaTeX）",
-  "interactive_html": "<style>...</style><div id='app'>...</div><script>...</script> 或 \\"\\"",
+  "diagram_svg": "<svg viewBox=\\"0 0 480 340\\" xmlns=\\"http://www.w3.org/2000/svg\\">...</svg> 或 \\"\\"",
   "practice": { "question": "一條同類型、數字唔同嘅練習題", "hint": "一個小提示（可選）" }
 }
 
