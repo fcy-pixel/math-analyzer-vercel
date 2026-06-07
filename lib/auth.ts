@@ -118,3 +118,56 @@ export async function requireAuth(req: NextRequest): Promise<NextResponse | null
   }
   return null;
 }
+
+/* ───────────── Student app (數學小助教) — class-code access ───────────── */
+
+export const STUDENT_COOKIE = "ksz_student";
+
+/** Valid class codes from the CLASS_CODES env (comma-separated). Falls back to a
+ * default so the app works right after deploy; override via CLASS_CODES. */
+function getClassCodes(): string[] {
+  const raw = process.env.CLASS_CODES;
+  if (raw && raw.trim()) return raw.split(",").map(s => s.trim()).filter(Boolean);
+  return ["math2026"];
+}
+
+export function verifyClassCode(code: unknown): boolean {
+  const c = String(code ?? "").trim();
+  if (!c) return false;
+  return getClassCodes().includes(c);
+}
+
+/** Mint a signed student session (separate role from the teacher session). */
+export async function createStudentSessionToken(classCode: string): Promise<string> {
+  const secret = getSessionSecret();
+  if (!secret) throw new Error("SESSION_SECRET 未設定");
+  return new SignJWT({ role: "student", class: classCode })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(`${SESSION_DAYS}d`)
+    .sign(secret);
+}
+
+async function verifyStudentSession(token: string): Promise<boolean> {
+  const secret = getSessionSecret();
+  if (!secret) return false;
+  try {
+    const { payload } = await jwtVerify(token, secret);
+    return payload.role === "student";
+  } catch {
+    return false;
+  }
+}
+
+/** Guard for the student app's API: accept a valid student OR teacher session. */
+export async function requireStudentOrTeacher(req: NextRequest): Promise<NextResponse | null> {
+  if (!authEnabled()) {
+    console.warn("[auth] SESSION_SECRET not set — API routes are UNPROTECTED.");
+    return null;
+  }
+  const studentTok = req.cookies.get(STUDENT_COOKIE)?.value;
+  if (studentTok && await verifyStudentSession(studentTok)) return null;
+  const teacherTok = req.cookies.get(SESSION_COOKIE)?.value;
+  if (teacherTok && await verifySessionToken(teacherTok)) return null;
+  return NextResponse.json({ error: "未登入或代碼已過期，請重新輸入班級代碼。", auth_required: true }, { status: 401 });
+}

@@ -1,6 +1,5 @@
 "use client";
 import "katex/dist/katex.min.css";
-import "./ask.css";
 import { useState, useRef, useEffect } from "react";
 import renderMathInElement from "katex/contrib/auto-render";
 import { imageToBase64, approxBase64Mb, shrinkImagesToFit } from "@/lib/pdf";
@@ -105,7 +104,7 @@ export default function AskPage() {
   }
 
   return (
-    <div className="kidapp">
+    <div>
       <div className="header">
         <div className="mascot">🦊</div>
         <div>

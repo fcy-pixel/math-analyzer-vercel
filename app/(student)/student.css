@@ -113,3 +113,22 @@
 }
 .kidapp .step-body { flex: 1; padding-top: 3px; line-height: 1.6; }
 .kidapp .practice-card { margin-top: 16px; padding: 16px; border-radius: 18px; background: linear-gradient(135deg, #fff7ec, #fff0fb); border: 1px solid #ffe2c7; }
+
+/* ── Class-code gate ── */
+.kidapp .gate-card { text-align: center; margin-top: 12vh; }
+.kidapp .gate-mascot { font-size: 3.4rem; animation: bob 2.4s ease-in-out infinite; }
+.kidapp .gate-title { font-size: 1.7rem; font-weight: 800; color: #4a4fa0; margin: 6px 0 2px; }
+.kidapp .gate-sub { color: #6b73b5; font-weight: 600; margin-bottom: 18px; }
+.kidapp .gate-input {
+  width: 100%; text-align: center; font-size: 1.3rem; letter-spacing: 2px;
+  padding: 12px; border: 2px solid #dfe4ff; border-radius: 14px; margin-bottom: 14px;
+}
+.kidapp .gate-input:focus { outline: none; border-color: #8aa0ff; box-shadow: 0 0 0 3px rgba(138,160,255,.25); }
+.kidapp .gate-btn { width: 100%; }
+.kidapp .code-reset {
+  position: fixed; top: 12px; right: 12px; z-index: 50;
+  border: none; cursor: pointer; font-family: inherit; font-weight: 700;
+  background: rgba(255,255,255,.85); color: #6a6fb0; backdrop-filter: blur(6px);
+  border-radius: 999px; padding: 6px 14px; box-shadow: 0 4px 12px rgba(90,100,200,.18);
+}
+.kidapp .code-reset:hover { background: #fff; }

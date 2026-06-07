@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { parseJson } from "@/lib/json-parse";
-import { requireAuth } from "@/lib/auth";
+import { requireStudentOrTeacher } from "@/lib/auth";
 
 export const runtime = "edge";
 
@@ -17,7 +17,7 @@ const BASE_URL = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1";
 const VISION_MODEL = "qwen-vl-max";
 
 export async function POST(req: NextRequest) {
-  const denied = await requireAuth(req);
+  const denied = await requireStudentOrTeacher(req);
   if (denied) return denied;
   try {
     const { image, grade, apiKey, model } = await req.json();
