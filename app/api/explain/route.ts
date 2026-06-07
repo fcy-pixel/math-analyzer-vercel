@@ -39,16 +39,14 @@ export async function POST(req: NextRequest) {
 2. 一步一步教，每步解釋「點解咁做」，唔好跳步。
 3. 計算必須正確：你要先在心中驗算清楚先答，數字絕對不能錯。
 4. 所有數學符號、算式、數字運算（喺 question_summary、steps、answer、practice 任何文字裡面）一律用 KaTeX 並用 $ 符號包住：行內用 $...$，獨立一行用 $$...$$。例如「總共 $15 \\times 31 = 465$ 小時」、分數 $\\frac{3}{4}$、除號 $\\div$、上標 $x^{2}$。唔好淨係寫 15×31 而唔用 $，亦唔好用 LaTeX 以外嘅特殊符號。
-5. 畫一幅**精美、清晰**嘅 SVG 圖解幫助理解。請跟足以下美術規範：
-   - viewBox="0 0 480 340"，四周留足夠白邊（約 24px），元素之間要有間距，唔好逼到邊或重疊。
-   - 配色用柔和鮮明、對比清晰嘅色系：藍 #4C6FFF、橙 #FF8A3D、綠 #2FB36B、紅 #FF5C5C、黃 #FFC83D、淺灰 #EEF1F7、深字 #2B3445。可加一個淺色圓角背景 <rect rx="16" fill="#F7F9FC"/>。
-   - 形狀一律用圓角（rect 加 rx）；線條 stroke-width 2–3、stroke-linecap="round"。
-   - 文字用 font-family="'PingFang TC','Microsoft JhengHei',sans-serif"、字夠大（標題 ≥18、標籤 ≥15）、text-anchor="middle" 置中、顏色用 #2B3445。
-   - 一定要有**標題或圖例**說明圖在表達乜。
-   - 按題型畫：分數用等分長條/圓餅並填色標示已佔部分；加減用方塊/算珠分組；長度/數線畫刻度同箭咀並標數值；幾何題畫圖形並標清楚邊長、單位。
-   - 圖入面所有數字、分數、標籤必須同你上面嘅解說完全一致。
-   - 只用純 SVG 元素（rect/circle/ellipse/line/path/polygon/text/g），唔好用外部圖片、外部字型或 <script>。
-   - 如果呢題真係冇適合嘅圖解，先回 ""。
+5. 製作一個**互動 HTML 小程式**（interactive_html）幫學生「玩住學」。要求：
+   - 一個**完整、自足**嘅 HTML 片段：包含 <style> 同 <script>，全部 inline，**唔好用任何外部資源**（唔好用 CDN、外部圖片、外部字型、框架）。用純 vanilla JavaScript。
+   - 要有**真正互動**：學生可以拖拉、點擊、撳掣去改變，並即時睇到結果。例如：分數→可拖 slider 或點格仔去填色等分長條，顯示對應分數；加減→可拖/加減方塊睇總數；數線→可拖標記睇位置同數值；幾何→可拖頂點或拉 slider 睇邊長/面積變化。
+   - 設計：適合喺約 480×440 嘅框內顯示、響應式、白底、字夠大、圓角、柔和鮮明配色（藍 #4C6FFF、橙 #FF8A3D、綠 #2FB36B、紅 #FF5C5C），繁體中文。
+   - 加即時鼓勵回饋（例如「啱晒！👍」「差少少，再試」）。
+   - 所有數字運算必須正確，同你上面嘅解說一致。
+   - **重要（確保 JSON 合法）**：interactive_html 字串內部嘅 HTML 屬性一律用單引號（例如 <div class='box'>），避免雙引號令 JSON 出錯。
+   - 如果呢題真係唔適合做互動，interactive_html 回 ""。
 6. 最後出一條同類型、數字唔同嘅練習題畀學生自己試。
 
 只輸出純 JSON（唔好加 markdown 代碼塊）：
@@ -59,7 +57,7 @@ export async function POST(req: NextRequest) {
     { "explain": "淺白文字解釋", "math": "KaTeX 算式（可選，冇就留空字串）" }
   ],
   "answer": "最終答案（可含 KaTeX）",
-  "diagram_svg": "<svg viewBox=\\"0 0 480 340\\" xmlns=\\"http://www.w3.org/2000/svg\\">...</svg> 或 \\"\\"",
+  "interactive_html": "<style>...</style><div id='app'>...</div><script>...</script> 或 \\"\\"",
   "practice": { "question": "一條同類型、數字唔同嘅練習題", "hint": "一個小提示（可選）" }
 }
 

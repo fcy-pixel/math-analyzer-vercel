@@ -11,6 +11,7 @@ type ExplainResult = {
   concept?: string;
   steps?: ExplainStep[];
   answer?: string;
+  interactive_html?: string;
   diagram_svg?: string;
   practice?: { question?: string; hint?: string };
   not_clear?: boolean;
@@ -177,7 +178,18 @@ export default function AskPage() {
               </>
             )}
 
-            {result.diagram_svg && sanitizeSvg(result.diagram_svg) && (
+            {result.interactive_html ? (
+              <>
+                <h3 style={{ margin: "14px 0 8px" }}>🕹️ 互動圖解（可拖拉、點擊）</h3>
+                {/* Sandboxed: scripts run but cannot touch our origin/cookies (no allow-same-origin). */}
+                <iframe
+                  title="互動圖解"
+                  sandbox="allow-scripts"
+                  srcDoc={`<!DOCTYPE html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><style>html,body{margin:0;padding:8px;font-family:'PingFang TC','Microsoft JhengHei',sans-serif;background:#fff;color:#2B3445}</style></head><body>${result.interactive_html}</body></html>`}
+                  style={{ width: "100%", height: 460, border: "1px solid var(--border)", borderRadius: 12, background: "#fff" }}
+                />
+              </>
+            ) : result.diagram_svg && sanitizeSvg(result.diagram_svg) ? (
               <>
                 <h3 style={{ margin: "14px 0 8px" }}>🖼️ 圖解</h3>
                 <div
@@ -185,7 +197,7 @@ export default function AskPage() {
                   dangerouslySetInnerHTML={{ __html: sanitizeSvg(result.diagram_svg).replace("<svg", "<svg style=\"max-width:100%;height:auto\"") }}
                 />
               </>
-            )}
+            ) : null}
 
             {result.answer && (
               <div className="success-box" style={{ marginTop: 14, fontSize: "1.05rem" }}>
