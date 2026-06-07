@@ -180,7 +180,10 @@ export default function AskPage() {
             {result.diagram_svg && sanitizeSvg(result.diagram_svg) && (
               <>
                 <h3 style={{ margin: "14px 0 8px" }}>🖼️ 圖解</h3>
-                <div style={{ textAlign: "center", overflowX: "auto" }} dangerouslySetInnerHTML={{ __html: sanitizeSvg(result.diagram_svg) }} />
+                <div
+                  style={{ textAlign: "center", overflowX: "auto", padding: 8, background: "#fff", borderRadius: 12, border: "1px solid var(--border)" }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeSvg(result.diagram_svg).replace("<svg", "<svg style=\"max-width:100%;height:auto\"") }}
+                />
               </>
             )}
 
