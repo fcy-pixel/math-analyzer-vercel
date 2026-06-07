@@ -8,7 +8,7 @@ export const runtime = "edge";
 import { getGradeCurriculum } from "@/lib/curriculum";
 
 const BASE_URL = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1";
-const VISION_MODEL = "qwen3-vl-30b-a3b-thinking";
+const VISION_MODEL = "qwen-vl-plus";
 const BATCH_SIZE = 1;
 
 export async function POST(req: NextRequest) {

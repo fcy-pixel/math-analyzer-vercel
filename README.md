@@ -31,3 +31,20 @@ npm run deploy       # 建置並部署到 Cloudflare Pages
 3. 各 AI 端點以 `requireAuth()` 檢查此 cookie，未通過回 401。
 
 > ⚠️ 在設定 `SESSION_SECRET` 之前，任何人都能直接呼叫 `/api/analyze-student` 等端點並消耗你的 Qwen 額度。正式環境請務必設定。
+
+### 設定 SESSION_SECRET 並重新部署（一次性）
+
+```bash
+# 1. 產生隨機密鑰並寫入 Pages production secret（會提示貼上值）
+openssl rand -base64 32 | npx wrangler pages secret put SESSION_SECRET --project-name math-analyzer-vercel
+
+# 2. 重新部署，讓 functions 讀到新變數
+npm run deploy
+
+# 3. 驗證：未帶 cookie 應回 401
+curl -s -X POST https://math-analyzer-vercel.pages.dev/api/analyze-student \
+  -H "Content-Type: application/json" -d '{"images":[]}'
+# → {"error":"未登入或登入已過期，請重新登入。","auth_required":true}
+```
+
+> 之後若更改或刪除 `SESSION_SECRET`，已登入使用者的舊 cookie 會失效，需要重新登入一次（預期行為）。

@@ -15,7 +15,7 @@ import {
   TabWeakDiagnosis, TabTeaching, TabPractice,
 } from "@/app/components/tabs";
 
-const DEFAULT_VISION_MODEL = "qwen3-vl-30b-a3b-thinking";
+const DEFAULT_VISION_MODEL = "qwen-vl-plus";
 
 
 export default function MathAnalyzer() {

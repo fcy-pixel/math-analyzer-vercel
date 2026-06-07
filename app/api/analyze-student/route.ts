@@ -8,7 +8,7 @@ import { requireAuth } from "@/lib/auth";
 export const runtime = "edge";
 
 const BASE_URL = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1";
-const VISION_MODEL = "qwen3-vl-30b-a3b-thinking";
+const VISION_MODEL = "qwen-vl-plus";
 const BATCH_SIZE = 2;
 
 /** Parse a student-grading reply, with a last-resort repair for output that was
