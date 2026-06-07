@@ -1,8 +1,9 @@
 "use client";
 import "katex/dist/katex.min.css";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import renderMathInElement from "katex/contrib/auto-render";
 import { imageToBase64, approxBase64Mb, shrinkImagesToFit } from "@/lib/pdf";
-import { renderMath, sanitizeSvg } from "@/lib/render-math";
+import { sanitizeSvg } from "@/lib/render-math";
 
 type ExplainStep = { explain: string; math?: string };
 type ExplainResult = {
@@ -21,6 +22,22 @@ type ExplainResult = {
 
 const GRADES = ["P1", "P2", "P3", "P4", "P5", "P6"];
 
+const KATEX_DELIMITERS = [
+  { left: "$$", right: "$$", display: true },
+  { left: "\\[", right: "\\]", display: true },
+  { left: "$", right: "$", display: false },
+  { left: "\\(", right: "\\)", display: false },
+];
+
+/** Wrap a raw-LaTeX field (no delimiters) so auto-render picks it up; if it
+ * already contains $ delimiters, leave it as-is. */
+function asMath(s: string, display = false): string {
+  if (!s) return "";
+  if (s.includes("$") || s.includes("\\(") || s.includes("\\[")) return s;
+  const d = display ? "$$" : "$";
+  return `${d}${s}${d}`;
+}
+
 export default function AskPage() {
   const [grade, setGrade] = useState("P4");
   const [preview, setPreview] = useState<string | null>(null);
@@ -29,6 +46,21 @@ export default function AskPage() {
   const [result, setResult] = useState<ExplainResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  // After a result renders, let KaTeX auto-render turn every $...$ in the text
+  // (in any field) into proper maths symbols.
+  useEffect(() => {
+    if (result && resultRef.current) {
+      try {
+        renderMathInElement(resultRef.current, {
+          delimiters: KATEX_DELIMITERS,
+          ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option", "svg"],
+          throwOnError: false,
+        });
+      } catch { /* ignore */ }
+    }
+  }, [result]);
 
   async function handleFile(file: File) {
     setError(null);
@@ -36,7 +68,6 @@ export default function AskPage() {
     setPreview(URL.createObjectURL(file));
     try {
       let imgs = await imageToBase64(file);
-      // Shrink large camera photos to keep the request small + fast.
       if (approxBase64Mb(imgs) > 1.6) imgs = await shrinkImagesToFit(imgs, 1.6);
       setImageB64(imgs[0] || null);
     } catch {
@@ -123,7 +154,7 @@ export default function AskPage() {
         )}
 
         {result && !result.not_clear && (
-          <div className="card">
+          <div className="card" ref={resultRef}>
             {result.question_summary && (
               <div className="info-box">📖 <strong>題目：</strong>{result.question_summary}</div>
             )}
@@ -139,7 +170,7 @@ export default function AskPage() {
                     <div style={{ flex: "0 0 28px", height: 28, borderRadius: "50%", background: "var(--accent, #667eea)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>{i + 1}</div>
                     <div style={{ flex: 1 }}>
                       <div>{s.explain}</div>
-                      {s.math ? <div style={{ marginTop: 4 }} dangerouslySetInnerHTML={{ __html: renderMath(s.math, true) }} /> : null}
+                      {s.math ? <div style={{ marginTop: 4 }}>{asMath(s.math, true)}</div> : null}
                     </div>
                   </div>
                 ))}
@@ -155,7 +186,7 @@ export default function AskPage() {
 
             {result.answer && (
               <div className="success-box" style={{ marginTop: 14, fontSize: "1.05rem" }}>
-                ✅ <strong>答案：</strong><span dangerouslySetInnerHTML={{ __html: renderMath(result.answer) }} />
+                ✅ <strong>答案：</strong>{result.answer}
               </div>
             )}
 
