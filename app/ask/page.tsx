@@ -1,5 +1,6 @@
 "use client";
 import "katex/dist/katex.min.css";
+import "./ask.css";
 import { useState, useRef, useEffect } from "react";
 import renderMathInElement from "katex/contrib/auto-render";
 import { imageToBase64, approxBase64Mb, shrinkImagesToFit } from "@/lib/pdf";
@@ -104,11 +105,12 @@ export default function AskPage() {
   }
 
   return (
-    <div>
+    <div className="kidapp">
       <div className="header">
+        <div className="mascot">🦊</div>
         <div>
-          <h1>🧮 數學小助教</h1>
-          <p>影一張數學題目，小助教會一步一步教你 · 香港小學數學</p>
+          <h1>數學小助教</h1>
+          <p>影一張數學題，跟住一步步做，學識為止！</p>
         </div>
       </div>
 
@@ -167,9 +169,9 @@ export default function AskPage() {
               <>
                 <h3 style={{ margin: "12px 0 8px" }}>📝 一步一步教你</h3>
                 {(result.steps || []).map((s, i) => (
-                  <div key={i} style={{ display: "flex", gap: 10, padding: "8px 0", borderBottom: "1px dashed var(--border)" }}>
-                    <div style={{ flex: "0 0 28px", height: 28, borderRadius: "50%", background: "var(--accent, #667eea)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>{i + 1}</div>
-                    <div style={{ flex: 1 }}>
+                  <div key={i} className="step">
+                    <div className="step-num">{i + 1}</div>
+                    <div className="step-body">
                       <div>{s.explain}</div>
                       {s.math ? <div style={{ marginTop: 4 }}>{asMath(s.math, true)}</div> : null}
                     </div>
@@ -180,7 +182,7 @@ export default function AskPage() {
 
             {result.interactive_html ? (
               <>
-                <h3 style={{ margin: "14px 0 8px" }}>🕹️ 互動圖解（可拖拉、點擊）</h3>
+                <h3 style={{ margin: "14px 0 8px" }}>🕹️ 互動解題練習（一步步跟住做）</h3>
                 {/* Sandboxed: scripts run but cannot touch our origin/cookies (no allow-same-origin). */}
                 <iframe
                   title="互動圖解"
@@ -212,7 +214,7 @@ export default function AskPage() {
             )}
 
             {result.practice?.question && (
-              <div style={{ marginTop: 14, padding: 14, border: "1px solid var(--border)", borderRadius: 10, background: "#fafbff" }}>
+              <div className="practice-card">
                 <h3 style={{ marginBottom: 6 }}>🎯 試多一題</h3>
                 <div>{result.practice.question}</div>
                 {result.practice.hint && <div style={{ marginTop: 6, fontSize: "0.88rem", color: "var(--fg2)" }}>💡 提示：{result.practice.hint}</div>}

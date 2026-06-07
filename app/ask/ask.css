@@ -1,0 +1,115 @@
+/* Cartoon-but-professional theme, scoped to the /ask student app via .kidapp
+ * so it never affects the teacher grading tool (which shares globals.css). */
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@600;700;800&display=swap');
+
+.kidapp {
+  font-family: 'Baloo 2', 'Nunito', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  min-height: 100vh;
+  color: #2b3158;
+  background:
+    radial-gradient(900px 480px at 8% -12%, #dde7ff 0, transparent 60%),
+    radial-gradient(820px 440px at 112% 4%, #ffe3f1 0, transparent 55%),
+    linear-gradient(180deg, #f3f6ff 0%, #fbf4ff 100%);
+  padding-bottom: 48px;
+}
+
+/* ── Header banner with mascot ── */
+.kidapp .header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0;
+  padding: 22px clamp(16px, 4vw, 40px);
+  color: #fff;
+  background: linear-gradient(135deg, #6a8bff 0%, #9a6bff 55%, #c86bff 100%);
+  border-radius: 0 0 30px 30px;
+  box-shadow: 0 10px 30px rgba(120, 110, 255, 0.35);
+}
+.kidapp .header .mascot {
+  font-size: 3rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.15));
+  animation: bob 2.4s ease-in-out infinite;
+}
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.kidapp .header h1 { font-size: clamp(1.4rem, 4vw, 1.9rem); font-weight: 800; margin: 0; letter-spacing: .5px; }
+.kidapp .header p { margin: 4px 0 0; opacity: .95; font-weight: 600; }
+
+.kidapp .container { max-width: 820px; margin: 0 auto; padding: 0 clamp(12px, 4vw, 20px); }
+
+/* ── Cards ── */
+.kidapp .card {
+  background: #fff;
+  border-radius: 24px;
+  padding: clamp(16px, 4vw, 24px);
+  margin-top: 18px;
+  border: 1px solid #eef0ff;
+  box-shadow: 0 14px 34px rgba(90, 100, 200, 0.12);
+}
+
+/* ── Buttons ── */
+.kidapp .btn {
+  border: none;
+  border-radius: 999px;
+  padding: 13px 30px;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 1.02rem;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+}
+.kidapp .btn-primary {
+  background: linear-gradient(135deg, #6a8bff, #9a6bff);
+  color: #fff;
+  box-shadow: 0 9px 20px rgba(120, 110, 255, 0.42);
+}
+.kidapp .btn-primary:hover:not(:disabled) { transform: translateY(-2px) scale(1.02); box-shadow: 0 14px 26px rgba(120, 110, 255, 0.52); }
+.kidapp .btn-primary:active:not(:disabled) { transform: translateY(0) scale(.99); }
+.kidapp .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── Upload zone ── */
+.kidapp .upload-zone {
+  border: 3px dashed #b9c6ff;
+  border-radius: 20px;
+  background: #f5f8ff;
+  padding: 30px 16px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: 700;
+  color: #5b6bb5;
+  transition: .2s ease;
+}
+.kidapp .upload-zone:hover { background: #eef3ff; border-color: #8aa0ff; transform: translateY(-1px); }
+.kidapp .upload-zone.has-file { border-color: #56c596; background: #effaf3; color: #2e8c61; }
+.kidapp .upload-zone input { display: none; }
+
+/* ── Info / status boxes ── */
+.kidapp .info-box { background: #eaf2ff; border-left: 5px solid #6a8bff; border-radius: 14px; padding: 12px 16px; }
+.kidapp .success-box { background: #e9faf0; border-left: 5px solid #2fb36b; border-radius: 14px; padding: 12px 16px; }
+.kidapp .warn-box { background: #fff4e5; border-left: 5px solid #ff8a3d; border-radius: 14px; padding: 12px 16px; }
+
+/* ── Headings & form ── */
+.kidapp h3 { color: #4a4fa0; font-weight: 800; }
+.kidapp .form-group label { font-weight: 700; color: #5b6bb5; font-size: .85rem; }
+.kidapp select, .kidapp input {
+  border: 2px solid #dfe4ff;
+  border-radius: 12px;
+  padding: 9px 12px;
+  font-family: inherit;
+  font-size: 1rem;
+  background: #fff;
+  color: #2b3158;
+}
+.kidapp select:focus, .kidapp input:focus { outline: none; border-color: #8aa0ff; box-shadow: 0 0 0 3px rgba(138, 160, 255, .25); }
+
+/* ── Step list ── */
+.kidapp .step { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px dashed #e6e9fb; }
+.kidapp .step:last-child { border-bottom: none; }
+.kidapp .step-num {
+  flex: 0 0 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #6a8bff, #9a6bff); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-weight: 800;
+  box-shadow: 0 4px 10px rgba(120, 110, 255, .35);
+}
+.kidapp .step-body { flex: 1; padding-top: 3px; line-height: 1.6; }
+.kidapp .practice-card { margin-top: 16px; padding: 16px; border-radius: 18px; background: linear-gradient(135deg, #fff7ec, #fff0fb); border: 1px solid #ffe2c7; }
